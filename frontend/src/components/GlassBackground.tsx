@@ -8,7 +8,7 @@ interface Props {
 
 export default function GlassBackground({ accent, glowColor }: Props) {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
       <View style={[styles.blob1, { backgroundColor: glowColor }]} />
       <View style={[styles.blob2, { backgroundColor: accent + '12' }]} />
       <View style={[styles.blob3, { backgroundColor: glowColor }]} />
