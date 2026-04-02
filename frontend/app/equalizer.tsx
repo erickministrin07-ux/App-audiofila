@@ -2,197 +2,101 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, EQ_10_FREQS, EQ_31_FREQS } from '../src/constants/theme';
+import { COLORS, GLASS, EQ_10_FREQS, EQ_31_FREQS } from '../src/constants/theme';
 import EQBand from '../src/components/EQBand';
+import GlassBackground from '../src/components/GlassBackground';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const API = process.env.EXPO_PUBLIC_BACKEND_URL;
+const A = COLORS.equalizer;
+type Mode = 'preset' | '10-band' | '31-band';
 
-type EQMode = 'preset' | '10-band' | '31-band';
-
-interface Preset {
-  id: string;
-  name: string;
-  bands: Record<string, number>;
-  preamp: number;
-  is_custom: boolean;
-}
+interface Preset { id: string; name: string; bands: Record<string, number>; preamp: number; is_custom: boolean; }
 
 export default function EqualizerScreen() {
-  const [mode, setMode] = useState<EQMode>('10-band');
+  const [mode, setMode] = useState<Mode>('10-band');
   const [presets, setPresets] = useState<Preset[]>([]);
-  const [activePreset, setActivePreset] = useState<string>('');
+  const [activePreset, setActivePreset] = useState('');
   const [bands, setBands] = useState<Record<string, number>>({});
   const [preamp, setPreamp] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [eqEnabled, setEqEnabled] = useState(true);
+  const [eqOn, setEqOn] = useState(true);
 
-  useEffect(() => {
-    fetchPresets();
-  }, []);
-
+  useEffect(() => { fetchPresets(); }, []);
   useEffect(() => {
     if (Object.keys(bands).length === 0) {
-      const freqs = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS;
-      const initial: Record<string, number> = {};
-      freqs.forEach(f => { initial[f] = 0; });
-      setBands(initial);
+      const f = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS;
+      const init: Record<string, number> = {}; f.forEach(x => { init[x] = 0; }); setBands(init);
     }
   }, [mode]);
 
   const fetchPresets = async () => {
-    try {
-      const r = await fetch(`${API_URL}/api/eq-presets`);
-      const data = await r.json();
-      setPresets(data);
-      if (data.length > 0) {
-        applyPreset(data[0]);
-      }
-    } catch (e) { console.error(e); }
+    try { const r = await fetch(`${API}/api/eq-presets`); const d = await r.json(); setPresets(d); if (d.length > 0) applyPreset(d[0]); } catch (e) {}
     setLoading(false);
   };
 
-  const applyPreset = (preset: Preset) => {
-    setActivePreset(preset.id);
-    setBands({ ...preset.bands });
-    setPreamp(preset.preamp);
-  };
+  const applyPreset = (p: Preset) => { setActivePreset(p.id); setBands({ ...p.bands }); setPreamp(p.preamp); };
+  const reset = () => { const f = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS; const r: Record<string, number> = {}; f.forEach(x => { r[x] = 0; }); setBands(r); setPreamp(0); setActivePreset(''); };
+  const updateBand = (freq: string, v: number) => { setBands(p => ({ ...p, [freq]: v })); setActivePreset(''); };
 
-  const resetBands = () => {
-    const freqs = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS;
-    const reset: Record<string, number> = {};
-    freqs.forEach(f => { reset[f] = 0; });
-    setBands(reset);
-    setPreamp(0);
-    setActivePreset('');
-  };
-
-  const updateBand = (freq: string, value: number) => {
-    setBands(prev => ({ ...prev, [freq]: value }));
-    setActivePreset('');
-  };
-
-  const currentFreqs = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS;
-  const sliderHeight = mode === '31-band' ? 130 : 170;
-
-  const modes: { key: EQMode; label: string }[] = [
-    { key: 'preset', label: 'PRESETS' },
-    { key: '10-band', label: '10 BANDAS' },
-    { key: '31-band', label: '31 BANDAS' },
-  ];
+  const freqs = mode === '31-band' ? EQ_31_FREQS : EQ_10_FREQS;
+  const slH = mode === '31-band' ? 130 : 170;
+  const modes: { key: Mode; label: string }[] = [{ key: 'preset', label: 'PRESETS' }, { key: '10-band', label: '10 BANDAS' }, { key: '31-band', label: '31 BANDAS' }];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>ECUALIZADOR</Text>
-        <TouchableOpacity
-          testID="eq-toggle-btn"
-          style={[styles.toggleBtn, eqEnabled && styles.toggleActive]}
-          onPress={() => setEqEnabled(!eqEnabled)}
-        >
-          <Text style={[styles.toggleText, eqEnabled && styles.toggleTextActive]}>
-            {eqEnabled ? 'ON' : 'OFF'}
-          </Text>
+    <SafeAreaView style={st.container} edges={['top']}>
+      <GlassBackground accent={A} glowColor={COLORS.equalizerGlow} />
+      <View style={st.header}>
+        <Text style={st.title}>Ecualizador</Text>
+        <TouchableOpacity testID="eq-toggle-btn" style={[st.onBtn, eqOn && { borderColor: A + '40', backgroundColor: A + '12' }]} onPress={() => setEqOn(!eqOn)}>
+          <Text style={[st.onText, eqOn && { color: A }]}>{eqOn ? 'ON' : 'OFF'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Mode Tabs */}
-      <View style={styles.modeTabs}>
+      <View style={st.modeRow}>
         {modes.map(m => (
-          <TouchableOpacity
-            key={m.key}
-            testID={`eq-mode-${m.key}`}
-            style={[styles.modeTab, mode === m.key && styles.modeTabActive]}
-            onPress={() => setMode(m.key)}
-          >
-            <Text style={[styles.modeTabText, mode === m.key && styles.modeTabTextActive]}>
-              {m.label}
-            </Text>
+          <TouchableOpacity key={m.key} testID={`eq-mode-${m.key}`} style={[st.modeBtn, mode === m.key && { backgroundColor: A + '12' }]} onPress={() => setMode(m.key)}>
+            <Text style={[st.modeText, mode === m.key && { color: A }]}>{m.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      ) : mode === 'preset' ? (
-        /* Preset Mode */
-        <ScrollView style={styles.presetList}>
-          {presets.map(preset => (
-            <TouchableOpacity
-              key={preset.id}
-              testID={`preset-${preset.name}`}
-              style={[styles.presetItem, activePreset === preset.id && styles.presetItemActive]}
-              onPress={() => applyPreset(preset)}
-            >
-              <View style={styles.presetInfo}>
-                <Text style={[styles.presetName, activePreset === preset.id && styles.presetNameActive]}>
-                  {preset.name}
-                </Text>
-                <Text style={styles.presetDetail}>
-                  Pre-amp: {preset.preamp > 0 ? '+' : ''}{preset.preamp.toFixed(1)}dB
-                </Text>
+      {loading ? <View style={st.center}><ActivityIndicator size="large" color={A} /></View>
+       : mode === 'preset' ? (
+        <ScrollView style={st.presetList}>
+          {presets.map(p => (
+            <TouchableOpacity key={p.id} testID={`preset-${p.name}`} style={[st.presetRow, activePreset === p.id && { backgroundColor: A + '08', borderLeftWidth: 3, borderLeftColor: A }]}
+              onPress={() => applyPreset(p)}>
+              <View style={{flex:1}}>
+                <Text style={[st.presetName, activePreset === p.id && { color: A }]}>{p.name}</Text>
+                <Text style={st.presetSub}>Pre-amp: {p.preamp > 0 ? '+' : ''}{p.preamp.toFixed(1)}dB</Text>
               </View>
-              {activePreset === preset.id && (
-                <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
-              )}
-              {preset.is_custom && (
-                <View style={styles.customBadge}>
-                  <Text style={styles.customBadgeText}>CUSTOM</Text>
-                </View>
-              )}
+              {activePreset === p.id && <Ionicons name="checkmark-circle" size={20} color={A} />}
             </TouchableOpacity>
           ))}
         </ScrollView>
       ) : (
-        /* Band Mode (10 or 31) */
-        <View style={styles.bandContainer}>
+        <View style={st.bandWrap}>
           {/* Preamp */}
-          <View style={styles.preampSection}>
-            <Text style={styles.preampLabel}>PRE-AMP</Text>
-            <View style={styles.preampControl}>
-              <TouchableOpacity onPress={() => setPreamp(Math.max(-12, preamp - 0.5))}>
-                <Ionicons name="remove-circle-outline" size={22} color={COLORS.textMuted} />
-              </TouchableOpacity>
-              <Text style={styles.preampValue}>
-                {preamp > 0 ? '+' : ''}{preamp.toFixed(1)} dB
-              </Text>
-              <TouchableOpacity onPress={() => setPreamp(Math.min(12, preamp + 0.5))}>
-                <Ionicons name="add-circle-outline" size={22} color={COLORS.textMuted} />
-              </TouchableOpacity>
+          <View style={[st.preampBox, GLASS, { borderRadius: 14 }]}>
+            <Text style={st.preampLabel}>PRE-AMP</Text>
+            <View style={st.preampCtrl}>
+              <TouchableOpacity onPress={() => setPreamp(Math.max(-12, preamp - 0.5))}><Ionicons name="remove-circle-outline" size={22} color={COLORS.textSecondary} /></TouchableOpacity>
+              <Text style={[st.preampVal, { color: A }]}>{preamp > 0 ? '+' : ''}{preamp.toFixed(1)} dB</Text>
+              <TouchableOpacity onPress={() => setPreamp(Math.min(12, preamp + 0.5))}><Ionicons name="add-circle-outline" size={22} color={COLORS.textSecondary} /></TouchableOpacity>
             </View>
           </View>
 
-          {/* dB Scale Labels */}
-          <View style={styles.scaleRow}>
-            <Text style={styles.scaleLabel}>+12</Text>
-            <View style={styles.scaleFlex} />
-            <Text style={styles.scaleLabel}>0</Text>
-            <View style={styles.scaleFlex} />
-            <Text style={styles.scaleLabel}>-12</Text>
-          </View>
-
           {/* Bands */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bandsScroll}>
-            {currentFreqs.map(freq => (
-              <EQBand
-                key={freq}
-                frequency={freq}
-                value={bands[freq] || 0}
-                onChange={(v) => updateBand(freq, v)}
-                height={sliderHeight}
-              />
-            ))}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.bandsScroll}>
+            {freqs.map(f => <EQBand key={f} frequency={f} value={bands[f] || 0} onChange={v => updateBand(f, v)} height={slH} accent={A} />)}
           </ScrollView>
 
-          {/* Active Preset Name + Reset */}
-          <View style={styles.bottomBar}>
-            <Text style={styles.activePresetLabel}>
-              {activePreset ? presets.find(p => p.id === activePreset)?.name || 'Custom' : 'Custom'}
-            </Text>
-            <TouchableOpacity testID="eq-reset-btn" style={styles.resetBtn} onPress={resetBands}>
-              <Ionicons name="refresh" size={14} color={COLORS.primary} />
-              <Text style={styles.resetBtnText}>RESET</Text>
+          {/* Footer */}
+          <View style={st.footer}>
+            <Text style={st.footerLabel}>{activePreset ? presets.find(p => p.id === activePreset)?.name || 'Custom' : 'Custom'}</Text>
+            <TouchableOpacity testID="eq-reset-btn" style={st.resetBtn} onPress={reset}>
+              <Ionicons name="refresh-outline" size={14} color={A} />
+              <Text style={[st.resetText, { color: A }]}>RESET</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -201,73 +105,28 @@ export default function EqualizerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
-  },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textMain, letterSpacing: 2 },
-  toggleBtn: {
-    paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1,
-    borderColor: COLORS.border, borderRadius: 2,
-  },
-  toggleActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primaryDim },
-  toggleText: { fontFamily: 'monospace', fontSize: 11, fontWeight: '700', color: COLORS.textDim, letterSpacing: 1 },
-  toggleTextActive: { color: COLORS.primary },
-  modeTabs: {
-    flexDirection: 'row', borderBottomWidth: 1,
-    borderBottomColor: COLORS.border, marginBottom: 8,
-  },
-  modeTab: {
-    flex: 1, paddingVertical: 10, alignItems: 'center',
-    borderBottomWidth: 2, borderBottomColor: 'transparent',
-  },
-  modeTabActive: { borderBottomColor: COLORS.primary },
-  modeTabText: { fontFamily: 'monospace', fontSize: 11, fontWeight: '600', color: COLORS.textDim, letterSpacing: 1 },
-  modeTabTextActive: { color: COLORS.primary },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  title: { fontSize: 28, fontWeight: '300', color: COLORS.textPrimary, letterSpacing: -0.5 },
+  onBtn: { paddingHorizontal: 16, paddingVertical: 7, borderWidth: 1, borderColor: COLORS.glassBorder, borderRadius: 12 },
+  onText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 1 },
+  modeRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 6 },
+  modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 12 },
+  modeText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '600', color: COLORS.textTertiary, letterSpacing: 0.8 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   presetList: { flex: 1, paddingHorizontal: 16 },
-  presetItem: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
-    borderBottomWidth: 1, borderBottomColor: COLORS.borderLight,
-    borderRadius: 2, marginBottom: 2,
-  },
-  presetItemActive: { backgroundColor: 'rgba(6,182,212,0.05)', borderLeftWidth: 2, borderLeftColor: COLORS.primary },
-  presetInfo: { flex: 1 },
-  presetName: { fontSize: 15, fontWeight: '600', color: COLORS.textMain, marginBottom: 2 },
-  presetNameActive: { color: COLORS.primary },
-  presetDetail: { fontFamily: 'monospace', fontSize: 11, color: COLORS.textDim },
-  customBadge: {
-    paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1,
-    borderColor: COLORS.warning + '50', backgroundColor: COLORS.warning + '15',
-    borderRadius: 2, marginLeft: 8,
-  },
-  customBadgeText: { fontFamily: 'monospace', fontSize: 9, fontWeight: '700', color: COLORS.warning },
-  bandContainer: { flex: 1, paddingHorizontal: 8 },
-  preampSection: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 10, marginBottom: 8,
-    backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border,
-    borderRadius: 2, marginHorizontal: 8,
-  },
-  preampLabel: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1 },
-  preampControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  preampValue: { fontFamily: 'monospace', fontSize: 14, fontWeight: '700', color: COLORS.primary, minWidth: 70, textAlign: 'center' },
-  scaleRow: {
-    flexDirection: 'column', alignItems: 'flex-start', paddingLeft: 12,
-    position: 'absolute', left: 0, top: 120, bottom: 60, zIndex: 1,
-  },
-  scaleLabel: { fontFamily: 'monospace', fontSize: 8, color: COLORS.textDim },
-  scaleFlex: { flex: 1 },
+  presetRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)', borderRadius: 10, marginBottom: 2 },
+  presetName: { fontSize: 15, fontWeight: '500', color: COLORS.textPrimary, marginBottom: 2 },
+  presetSub: { fontFamily: 'monospace', fontSize: 10, color: COLORS.textTertiary },
+  bandWrap: { flex: 1, paddingHorizontal: 8 },
+  preampBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, marginHorizontal: 8, marginBottom: 8 },
+  preampLabel: { fontFamily: 'monospace', fontSize: 9, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 1.5 },
+  preampCtrl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  preampVal: { fontFamily: 'monospace', fontSize: 14, fontWeight: '700', minWidth: 70, textAlign: 'center' },
   bandsScroll: { paddingHorizontal: 8, paddingTop: 8, gap: 2 },
-  bottomBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 10, marginTop: 8,
-    borderTopWidth: 1, borderTopColor: COLORS.border,
-  },
-  activePresetLabel: { fontFamily: 'monospace', fontSize: 12, color: COLORS.textMuted, letterSpacing: 0.5 },
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)' },
+  footerLabel: { fontFamily: 'monospace', fontSize: 12, color: COLORS.textTertiary },
   resetBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 6 },
-  resetBtnText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', color: COLORS.primary, letterSpacing: 1 },
+  resetText: { fontFamily: 'monospace', fontSize: 9, fontWeight: '700', letterSpacing: 1 },
 });

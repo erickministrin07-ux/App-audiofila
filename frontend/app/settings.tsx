@@ -2,366 +2,169 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SUPPORTED_FORMATS } from '../src/constants/theme';
+import { COLORS, GLASS, SUPPORTED_FORMATS } from '../src/constants/theme';
+import GlassBackground from '../src/components/GlassBackground';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-
+const API = process.env.EXPO_PUBLIC_BACKEND_URL;
+const A = COLORS.settings;
 const SAMPLE_RATES = [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];
 const BUFFER_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
 const DITHER_TYPES = ['none', 'rectangular', 'triangular', 'noise_shaped'];
-const RESAMPLER_QUALITIES = ['linear', 'sinc_fast', 'sinc_medium', 'sinc_best', 'zero_order_hold'];
-const REPLAY_GAIN_MODES = ['off', 'track', 'album'];
-const OUTPUT_DEVICES = ['default', 'OpenSL ES', 'AAudio', 'USB DAC', 'Bluetooth A2DP', 'HDMI'];
+const RESAMPLER_Q = ['linear', 'sinc_fast', 'sinc_medium', 'sinc_best', 'zero_order_hold'];
+const REPLAY_GAIN = ['off', 'track', 'album'];
+const OUTPUTS = ['default', 'OpenSL ES', 'AAudio', 'USB DAC', 'Bluetooth A2DP', 'HDMI'];
 
-interface Settings {
-  bit_perfect: boolean;
-  processing_64bit: boolean;
-  output_device: string;
-  sample_rate: number;
-  buffer_size: number;
-  dither_type: string;
-  gain: number;
-  resampler_quality: string;
-  volume_normalization: boolean;
-  gapless_playback: boolean;
-  replay_gain: string;
-  preamp: number;
-  tone_bass: number;
-  tone_treble: number;
-  stereo_mode: string;
-  crossfeed: number;
-  channel_balance: number;
-}
+interface S { bit_perfect: boolean; processing_64bit: boolean; output_device: string; sample_rate: number; buffer_size: number; dither_type: string; gain: number; resampler_quality: string; volume_normalization: boolean; gapless_playback: boolean; replay_gain: string; preamp: number; tone_bass: number; tone_treble: number; stereo_mode: string; crossfeed: number; channel_balance: number; }
 
 export default function SettingsScreen() {
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [s, setS] = useState<S | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedSection, setExpandedSection] = useState<string>('engine');
+  const [open, setOpen] = useState('engine');
 
-  useEffect(() => { fetchSettings(); }, []);
+  useEffect(() => { fetch(`${API}/api/settings`).then(r => r.json()).then(setS).catch(() => {}); setLoading(false); }, []);
 
-  const fetchSettings = async () => {
-    try {
-      const r = await fetch(`${API_URL}/api/settings`);
-      setSettings(await r.json());
-    } catch (e) { console.error(e); }
-    setLoading(false);
+  const upd = async (k: keyof S, v: any) => {
+    if (!s) return;
+    const next = { ...s, [k]: v }; setS(next);
+    fetch(`${API}/api/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) }).catch(() => {});
   };
 
-  const updateSetting = async (key: keyof Settings, value: any) => {
-    if (!settings) return;
-    const updated = { ...settings, [key]: value };
-    setSettings(updated);
-    try {
-      await fetch(`${API_URL}/api/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      });
-    } catch (e) { console.error(e); }
-  };
-
-  const toggleSection = (section: string) => {
-    setExpandedSection(prev => prev === section ? '' : section);
-  };
-
-  if (loading || !settings) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const formatRate = (hz: number) => hz >= 1000 ? `${(hz / 1000).toFixed(hz % 1000 === 0 ? 0 : 1)} kHz` : `${hz} Hz`;
+  if (loading || !s) return <SafeAreaView style={st.container} edges={['top']}><View style={st.center}><ActivityIndicator size="large" color={A} /></View></SafeAreaView>;
+  const fmtRate = (hz: number) => hz >= 1000 ? `${(hz / 1000).toFixed(hz % 1000 === 0 ? 0 : 1)} kHz` : `${hz} Hz`;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>CONFIGURACION</Text>
-        <Text style={styles.headerSub}>SALIDA DE AUDIO</Text>
-      </View>
-
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Audio Engine */}
-        <SectionHeader
-          title="MOTOR DE AUDIO"
-          icon="flash"
-          expanded={expandedSection === 'engine'}
-          onToggle={() => toggleSection('engine')}
-        />
-        {expandedSection === 'engine' && (
-          <View style={styles.sectionContent}>
-            <ToggleRow testId="bit-perfect" label="Bit-Perfect Mode" desc="Bypass todo procesamiento DSP" value={settings.bit_perfect} onToggle={(v) => updateSetting('bit_perfect', v)} />
-            <ToggleRow testId="64bit" label="Procesamiento 64-bit" desc="Float de doble precision para audio" value={settings.processing_64bit} onToggle={(v) => updateSetting('processing_64bit', v)} />
-            <ToggleRow testId="gapless" label="Reproduccion Sin Pausas" desc="Gapless playback entre pistas" value={settings.gapless_playback} onToggle={(v) => updateSetting('gapless_playback', v)} />
-            <ToggleRow testId="vol-norm" label="Normalizacion de Volumen" desc="Igualar volumen entre pistas" value={settings.volume_normalization} onToggle={(v) => updateSetting('volume_normalization', v)} />
+    <SafeAreaView style={st.container} edges={['top']}>
+      <GlassBackground accent={A} glowColor={COLORS.settingsGlow} />
+      <View style={st.header}><Text style={st.title}>Config</Text><Text style={st.sub}>SALIDA DE AUDIO</Text></View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Engine */}
+        <SecHeader title="MOTOR DE AUDIO" icon="flash-outline" open={open === 'engine'} onPress={() => setOpen(open === 'engine' ? '' : 'engine')} accent={A} />
+        {open === 'engine' && (
+          <View style={st.secContent}>
+            <TogRow tid="bit-perfect" label="Bit-Perfect Mode" desc="Bypass DSP completo" val={s.bit_perfect} onTog={v => upd('bit_perfect', v)} accent={A} />
+            <TogRow tid="64bit" label="Procesamiento 64-bit" desc="Doble precision float" val={s.processing_64bit} onTog={v => upd('processing_64bit', v)} accent={A} />
+            <TogRow tid="gapless" label="Sin Pausas" desc="Gapless playback" val={s.gapless_playback} onTog={v => upd('gapless_playback', v)} accent={A} />
+            <TogRow tid="vol-norm" label="Normalizacion" desc="Volumen uniforme" val={s.volume_normalization} onTog={v => upd('volume_normalization', v)} accent={A} />
           </View>
         )}
 
-        {/* Output Config */}
-        <SectionHeader
-          title="DISPOSITIVO DE SALIDA"
-          icon="hardware-chip"
-          expanded={expandedSection === 'output'}
-          onToggle={() => toggleSection('output')}
-        />
-        {expandedSection === 'output' && (
-          <View style={styles.sectionContent}>
-            <Text style={styles.optionLabel}>SALIDA</Text>
-            <View style={styles.optionGrid}>
-              {OUTPUT_DEVICES.map(device => (
-                <TouchableOpacity
-                  key={device}
-                  testID={`output-${device}`}
-                  style={[styles.optionBtn, settings.output_device === device && styles.optionBtnActive]}
-                  onPress={() => updateSetting('output_device', device)}
-                >
-                  <Text style={[styles.optionBtnText, settings.output_device === device && styles.optionBtnTextActive]}>
-                    {device}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.optionLabel}>FRECUENCIA DE MUESTREO</Text>
-            <View style={styles.optionGrid}>
-              {SAMPLE_RATES.map(rate => (
-                <TouchableOpacity
-                  key={rate}
-                  testID={`sample-rate-${rate}`}
-                  style={[styles.optionBtn, settings.sample_rate === rate && styles.optionBtnActive]}
-                  onPress={() => updateSetting('sample_rate', rate)}
-                >
-                  <Text style={[styles.optionBtnText, settings.sample_rate === rate && styles.optionBtnTextActive]}>
-                    {formatRate(rate)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.optionLabel}>TAMANO DE BUFFER</Text>
-            <View style={styles.optionGrid}>
-              {BUFFER_SIZES.map(size => (
-                <TouchableOpacity
-                  key={size}
-                  testID={`buffer-${size}`}
-                  style={[styles.optionBtn, settings.buffer_size === size && styles.optionBtnActive]}
-                  onPress={() => updateSetting('buffer_size', size)}
-                >
-                  <Text style={[styles.optionBtnText, settings.buffer_size === size && styles.optionBtnTextActive]}>
-                    {size}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        {/* Output */}
+        <SecHeader title="DISPOSITIVO DE SALIDA" icon="hardware-chip-outline" open={open === 'output'} onPress={() => setOpen(open === 'output' ? '' : 'output')} accent={A} />
+        {open === 'output' && (
+          <View style={st.secContent}>
+            <Text style={st.optLabel}>SALIDA</Text>
+            <View style={st.optGrid}>{OUTPUTS.map(d => <OptBtn key={d} testID={`output-${d}`} label={d} active={s.output_device === d} onPress={() => upd('output_device', d)} accent={A} />)}</View>
+            <Text style={st.optLabel}>FRECUENCIA DE MUESTREO</Text>
+            <View style={st.optGrid}>{SAMPLE_RATES.map(r => <OptBtn key={r} testID={`sample-rate-${r}`} label={fmtRate(r)} active={s.sample_rate === r} onPress={() => upd('sample_rate', r)} accent={A} />)}</View>
+            <Text style={st.optLabel}>BUFFER</Text>
+            <View style={st.optGrid}>{BUFFER_SIZES.map(b => <OptBtn key={b} testID={`buffer-${b}`} label={String(b)} active={s.buffer_size === b} onPress={() => upd('buffer_size', b)} accent={A} />)}</View>
           </View>
         )}
 
         {/* DSP */}
-        <SectionHeader
-          title="PROCESAMIENTO DSP"
-          icon="color-wand"
-          expanded={expandedSection === 'dsp'}
-          onToggle={() => toggleSection('dsp')}
-        />
-        {expandedSection === 'dsp' && (
-          <View style={styles.sectionContent}>
-            <Text style={styles.optionLabel}>TIPO DE DITHER</Text>
-            <View style={styles.optionGrid}>
-              {DITHER_TYPES.map(type => (
-                <TouchableOpacity
-                  key={type}
-                  testID={`dither-${type}`}
-                  style={[styles.optionBtn, settings.dither_type === type && styles.optionBtnActive]}
-                  onPress={() => updateSetting('dither_type', type)}
-                >
-                  <Text style={[styles.optionBtnText, settings.dither_type === type && styles.optionBtnTextActive]}>
-                    {type.replace(/_/g, ' ').toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.optionLabel}>CALIDAD DEL RESAMPLER</Text>
-            <View style={styles.optionGrid}>
-              {RESAMPLER_QUALITIES.map(q => (
-                <TouchableOpacity
-                  key={q}
-                  testID={`resampler-${q}`}
-                  style={[styles.optionBtn, settings.resampler_quality === q && styles.optionBtnActive]}
-                  onPress={() => updateSetting('resampler_quality', q)}
-                >
-                  <Text style={[styles.optionBtnText, settings.resampler_quality === q && styles.optionBtnTextActive]}>
-                    {q.replace(/_/g, ' ').toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.optionLabel}>REPLAY GAIN</Text>
-            <View style={styles.optionGrid}>
-              {REPLAY_GAIN_MODES.map(mode => (
-                <TouchableOpacity
-                  key={mode}
-                  testID={`replay-gain-${mode}`}
-                  style={[styles.optionBtn, settings.replay_gain === mode && styles.optionBtnActive]}
-                  onPress={() => updateSetting('replay_gain', mode)}
-                >
-                  <Text style={[styles.optionBtnText, settings.replay_gain === mode && styles.optionBtnTextActive]}>
-                    {mode.toUpperCase()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        <SecHeader title="DSP" icon="color-wand-outline" open={open === 'dsp'} onPress={() => setOpen(open === 'dsp' ? '' : 'dsp')} accent={A} />
+        {open === 'dsp' && (
+          <View style={st.secContent}>
+            <Text style={st.optLabel}>DITHER</Text>
+            <View style={st.optGrid}>{DITHER_TYPES.map(d => <OptBtn key={d} testID={`dither-${d}`} label={d.replace(/_/g, ' ').toUpperCase()} active={s.dither_type === d} onPress={() => upd('dither_type', d)} accent={A} />)}</View>
+            <Text style={st.optLabel}>RESAMPLER</Text>
+            <View style={st.optGrid}>{RESAMPLER_Q.map(q => <OptBtn key={q} testID={`resampler-${q}`} label={q.replace(/_/g, ' ').toUpperCase()} active={s.resampler_quality === q} onPress={() => upd('resampler_quality', q)} accent={A} />)}</View>
+            <Text style={st.optLabel}>REPLAY GAIN</Text>
+            <View style={st.optGrid}>{REPLAY_GAIN.map(m => <OptBtn key={m} testID={`replay-gain-${m}`} label={m.toUpperCase()} active={s.replay_gain === m} onPress={() => upd('replay_gain', m)} accent={A} />)}</View>
           </View>
         )}
 
-        {/* Supported Formats */}
-        <SectionHeader
-          title="FORMATOS SOPORTADOS"
-          icon="document-text"
-          expanded={expandedSection === 'formats'}
-          onToggle={() => toggleSection('formats')}
-        />
-        {expandedSection === 'formats' && (
-          <View style={styles.sectionContent}>
-            <View style={styles.formatsGrid}>
-              {SUPPORTED_FORMATS.map(fmt => {
-                const isLossless = ['FLAC', 'WAV', 'AIFF', 'ALAC', 'DSD'].includes(fmt);
+        {/* Formats */}
+        <SecHeader title="FORMATOS" icon="document-text-outline" open={open === 'formats'} onPress={() => setOpen(open === 'formats' ? '' : 'formats')} accent={A} />
+        {open === 'formats' && (
+          <View style={st.secContent}>
+            <View style={st.fmtGrid}>
+              {SUPPORTED_FORMATS.map(f => {
+                const ll = ['FLAC', 'WAV', 'AIFF', 'ALAC', 'DSD'].includes(f);
+                const clr = ll ? COLORS.success : COLORS.warning;
                 return (
-                  <View key={fmt} style={[styles.formatBadge, isLossless ? styles.formatLossless : styles.formatLossy]}>
-                    <Text style={[styles.formatText, isLossless ? styles.formatTextLossless : styles.formatTextLossy]}>
-                      {fmt}
-                    </Text>
-                    <Text style={styles.formatType}>
-                      {isLossless ? 'LOSSLESS' : 'LOSSY'}
-                    </Text>
+                  <View key={f} style={[st.fmtBadge, { borderColor: clr + '25', backgroundColor: clr + '08' }]}>
+                    <Text style={[st.fmtText, { color: clr }]}>{f}</Text>
+                    <Text style={st.fmtType}>{ll ? 'LOSSLESS' : 'LOSSY'}</Text>
                   </View>
                 );
               })}
             </View>
-            <View style={styles.specsBox}>
-              <SpecRow label="Max Sample Rate" value="384 kHz" />
-              <SpecRow label="Max Bit Depth" value="32-bit" />
-              <SpecRow label="DSD Support" value="DSD64 / DSD128" />
-              <SpecRow label="Processing" value="64-bit Float" />
-              <SpecRow label="Audio Engine" value="Bit-Perfect" />
+            <View style={[st.specBox, GLASS, { borderRadius: 14 }]}>
+              <SpecRow label="Max Sample Rate" value="384 kHz" accent={A} />
+              <SpecRow label="Max Bit Depth" value="32-bit" accent={A} />
+              <SpecRow label="DSD" value="DSD64 / DSD128" accent={A} />
+              <SpecRow label="Procesamiento" value="64-bit Float" accent={A} />
+              <SpecRow label="Motor" value="Bit-Perfect" accent={A} />
             </View>
           </View>
         )}
-
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function SectionHeader({ title, icon, expanded, onToggle }: {
-  title: string; icon: string; expanded: boolean; onToggle: () => void;
-}) {
+function SecHeader({ title, icon, open, onPress, accent }: { title: string; icon: any; open: boolean; onPress: () => void; accent: string }) {
   return (
-    <TouchableOpacity testID={`section-${title}`} style={styles.sectionHeader} onPress={onToggle}>
-      <View style={styles.sectionLeft}>
-        <Ionicons name={icon as any} size={18} color={COLORS.primary} />
-        <Text style={styles.sectionTitle}>{title}</Text>
-      </View>
-      <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.textDim} />
+    <TouchableOpacity testID={`section-${title}`} style={st.secHeader} onPress={onPress}>
+      <View style={st.secLeft}><Ionicons name={icon} size={18} color={accent} /><Text style={st.secTitle}>{title}</Text></View>
+      <Ionicons name={open ? 'chevron-up-outline' : 'chevron-down-outline'} size={16} color={COLORS.textTertiary} />
     </TouchableOpacity>
   );
 }
 
-function ToggleRow({ testId, label, desc, value, onToggle }: {
-  testId: string; label: string; desc: string; value: boolean; onToggle: (v: boolean) => void;
-}) {
+function TogRow({ tid, label, desc, val, onTog, accent }: { tid: string; label: string; desc: string; val: boolean; onTog: (v: boolean) => void; accent: string }) {
   return (
-    <View style={styles.toggleRow}>
-      <View style={styles.toggleInfo}>
-        <Text style={styles.toggleLabel}>{label}</Text>
-        <Text style={styles.toggleDesc}>{desc}</Text>
-      </View>
-      <Switch
-        testID={`toggle-${testId}`}
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{ false: '#333', true: COLORS.primaryDim }}
-        thumbColor={value ? COLORS.primary : '#666'}
-      />
+    <View style={st.togRow}>
+      <View style={{ flex: 1, marginRight: 16 }}><Text style={st.togLabel}>{label}</Text><Text style={st.togDesc}>{desc}</Text></View>
+      <Switch testID={`toggle-${tid}`} value={val} onValueChange={onTog} trackColor={{ false: '#222', true: accent + '30' }} thumbColor={val ? accent : '#555'} />
     </View>
   );
 }
 
-function SpecRow({ label, value }: { label: string; value: string }) {
+function OptBtn({ testID, label, active, onPress, accent }: { testID: string; label: string; active: boolean; onPress: () => void; accent: string }) {
   return (
-    <View style={styles.specRow}>
-      <Text style={styles.specLabel}>{label}</Text>
-      <Text style={styles.specValue}>{value}</Text>
-    </View>
+    <TouchableOpacity testID={testID} style={[st.optBtn, active && { borderColor: accent + '40', backgroundColor: accent + '12' }]} onPress={onPress}>
+      <Text style={[st.optBtnText, active && { color: accent }]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+function SpecRow({ label, value, accent }: { label: string; value: string; accent: string }) {
+  return (
+    <View style={st.specRow}><Text style={st.specLabel}>{label}</Text><Text style={[st.specVal, { color: accent }]}>{value}</Text></View>
+  );
+}
+
+const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 16, paddingVertical: 12 },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textMain, letterSpacing: 2 },
-  headerSub: { fontFamily: 'monospace', fontSize: 10, color: COLORS.textDim, letterSpacing: 1, marginTop: 2 },
-  scrollContent: { flex: 1 },
-  sectionHeader: {
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  title: { fontSize: 28, fontWeight: '300', color: COLORS.textPrimary, letterSpacing: -0.5 },
+  sub: { fontFamily: 'monospace', fontSize: 9, color: COLORS.textTertiary, letterSpacing: 2, marginTop: 2 },
+  secHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    paddingHorizontal: 20, paddingVertical: 15,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
-  sectionLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionTitle: {
-    fontFamily: 'monospace', fontSize: 11, fontWeight: '700',
-    color: COLORS.textMain, letterSpacing: 1.5,
-  },
-  sectionContent: {
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
-  },
-  toggleRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.borderLight,
-  },
-  toggleInfo: { flex: 1, marginRight: 16 },
-  toggleLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textMain, marginBottom: 2 },
-  toggleDesc: { fontSize: 11, color: COLORS.textDim },
-  optionLabel: {
-    fontFamily: 'monospace', fontSize: 9, fontWeight: '700',
-    color: COLORS.textDim, letterSpacing: 1.5, marginTop: 14, marginBottom: 8,
-  },
-  optionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  optionBtn: {
-    paddingHorizontal: 12, paddingVertical: 8,
-    borderWidth: 1, borderColor: COLORS.border, borderRadius: 2,
-  },
-  optionBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primaryDim },
-  optionBtnText: { fontFamily: 'monospace', fontSize: 10, fontWeight: '600', color: COLORS.textDim },
-  optionBtnTextActive: { color: COLORS.primary },
-  formatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  formatBadge: {
-    paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderRadius: 2,
-    alignItems: 'center', minWidth: 70,
-  },
-  formatLossless: { borderColor: 'rgba(16,185,129,0.3)', backgroundColor: 'rgba(16,185,129,0.08)' },
-  formatLossy: { borderColor: 'rgba(245,158,11,0.3)', backgroundColor: 'rgba(245,158,11,0.08)' },
-  formatText: { fontFamily: 'monospace', fontSize: 13, fontWeight: '700', letterSpacing: 1 },
-  formatTextLossless: { color: COLORS.success },
-  formatTextLossy: { color: COLORS.warning },
-  formatType: { fontFamily: 'monospace', fontSize: 7, color: COLORS.textDim, marginTop: 2, letterSpacing: 1 },
-  specsBox: {
-    marginTop: 16, padding: 12, backgroundColor: COLORS.surface,
-    borderWidth: 1, borderColor: COLORS.border, borderRadius: 2,
-  },
-  specRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.borderLight,
-  },
-  specLabel: { fontFamily: 'monospace', fontSize: 11, color: COLORS.textMuted },
-  specValue: { fontFamily: 'monospace', fontSize: 11, fontWeight: '700', color: COLORS.primary },
+  secLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  secTitle: { fontFamily: 'monospace', fontSize: 10, fontWeight: '700', color: COLORS.textPrimary, letterSpacing: 1.5 },
+  secContent: { paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  togRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
+  togLabel: { fontSize: 14, fontWeight: '500', color: COLORS.textPrimary, marginBottom: 2 },
+  togDesc: { fontSize: 11, color: COLORS.textTertiary },
+  optLabel: { fontFamily: 'monospace', fontSize: 8, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 2, marginTop: 14, marginBottom: 8 },
+  optGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  optBtn: { paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.glassBorder, borderRadius: 10 },
+  optBtnText: { fontFamily: 'monospace', fontSize: 9, fontWeight: '600', color: COLORS.textTertiary },
+  fmtGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  fmtBadge: { paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderRadius: 12, alignItems: 'center', minWidth: 70 },
+  fmtText: { fontFamily: 'monospace', fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  fmtType: { fontFamily: 'monospace', fontSize: 7, color: COLORS.textTertiary, marginTop: 2, letterSpacing: 1 },
+  specBox: { marginTop: 16, padding: 14 },
+  specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  specLabel: { fontFamily: 'monospace', fontSize: 11, color: COLORS.textSecondary },
+  specVal: { fontFamily: 'monospace', fontSize: 11, fontWeight: '700' },
 });
