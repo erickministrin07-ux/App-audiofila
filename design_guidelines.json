@@ -1,110 +1,140 @@
 {
   "theme": "dark",
-  "archetype": "Archetype 2 (Performance Pro) / Archetype 4 (Swiss & High-Contrast) Hybrid - Technical Audiophile",
-  "domain": "Audiophile Music Player",
-  "color_palette": {
-    "background": "#0A0A0A",
-    "surface": "#121212",
-    "surface_hover": "#1C1C1E",
-    "primary": "#06B6D4",
-    "primary_hover": "#0891B2",
-    "text_main": "#FFFFFF",
-    "text_muted": "#A1A1AA",
-    "border": "rgba(255, 255, 255, 0.12)",
-    "success": "#10B981",
-    "warning": "#F59E0B",
-    "error": "#EF4444"
+  "archetype": "5 (Jewel & Luxury) mixed with Neon Accents for the 'Rainbow Palette'",
+  "colors": {
+    "background": {
+      "base": "#050505",
+      "surface_glass": "rgba(255, 255, 255, 0.03)",
+      "surface_glass_heavy": "rgba(0, 0, 0, 0.4)",
+      "ambient_blobs": [
+        "rgba(255, 107, 107, 0.15)",
+        "rgba(45, 91, 255, 0.15)",
+        "rgba(205, 255, 0, 0.1)"
+      ]
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "rgba(255, 255, 255, 0.6)",
+      "tertiary": "rgba(255, 255, 255, 0.4)",
+      "mono": "rgba(255, 255, 255, 0.8)"
+    },
+    "accents": {
+      "library": "#FF6B6B", 
+      "now_playing": "#2D5BFF",
+      "equalizer": "#CDFF00",
+      "spectrum": "#FF8A00",
+      "settings": "#E0F2FE",
+      "danger": "#EF4444"
+    },
+    "borders": {
+      "glass": "rgba(255, 255, 255, 0.08)",
+      "glass_highlight": "rgba(255, 255, 255, 0.15)"
+    }
   },
   "typography": {
-    "heading_font": "Outfit, sans-serif",
-    "body_font": "IBM Plex Sans, sans-serif",
-    "data_font": "IBM Plex Mono, monospace",
-    "font_install_instructions": "Add Google Fonts imports for Outfit, IBM Plex Sans, and IBM Plex Mono to the global CSS.",
+    "fonts": {
+      "headings": "Outfit, sans-serif",
+      "body": "Outfit, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
     "hierarchy": {
-      "h1": "text-3xl font-bold tracking-tight text-white",
-      "h2": "text-2xl font-semibold tracking-tight text-white",
-      "body": "text-base font-normal text-zinc-300",
-      "data_labels": "text-xs font-medium tracking-[0.1em] text-zinc-400 uppercase font-mono",
-      "readouts": "text-sm font-bold text-cyan-400 font-mono"
+      "h1": "text-4xl sm:text-5xl font-light tracking-tighter text-white",
+      "h2": "text-2xl sm:text-3xl font-medium tracking-tight text-white",
+      "h3": "text-xl font-medium tracking-tight text-white/90",
+      "body": "text-base font-normal leading-relaxed text-white/70",
+      "label": "text-xs font-semibold tracking-[0.2em] uppercase text-white/50",
+      "mono_data": "text-xs font-mono tracking-wider text-white/80"
     }
   },
   "spacing_and_layout": {
-    "philosophy": "Control Room Grid - high density, technical precision, visible 1px borders. No soft shadows.",
-    "container": "Mobile-first responsive layout (w-full max-w-md mx-auto h-[100dvh] overflow-hidden flex flex-col bg-[#0A0A0A] border-x border-white/10) to emulate a mobile app view.",
-    "borders": "1px solid border-white/10 for all panels, hard technical edges.",
-    "radii": "rounded-none or max rounded-sm (2px) for brutalist precision."
+    "grid_system": "Mobile-first full screen flex layouts with absolute positioning for fixed navigation.",
+    "bento_spacing": "gap-4 md:gap-6",
+    "container_padding": "p-4 md:p-6 lg:p-8",
+    "glass_panels": "p-6 rounded-3xl"
+  },
+  "surface_strategies": {
+    "glass_morphism": {
+      "classes": "bg-black/30 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)]",
+      "hover": "hover:bg-black/40 hover:border-white/20 transition-all duration-300",
+      "active": "active:scale-95 transition-transform duration-100"
+    },
+    "format_badge": {
+      "classes": "inline-flex items-center px-2 py-1 rounded-md bg-white/5 backdrop-blur-md border border-white/10 text-[10px] font-mono tracking-widest uppercase"
+    },
+    "bottom_nav": {
+      "classes": "fixed bottom-0 left-0 right-0 h-24 bg-black/60 backdrop-blur-3xl border-t border-white/10 flex items-center justify-around px-6 pb-safe pt-2 z-50"
+    }
   },
   "components": {
-    "buttons": "Flat, 1px border, transparent background, text-white. Hover state: bg-white/5. Primary actions use text-cyan-400.",
-    "sliders": "For EQ: Vertical orientation. Thin 2px track (bg-white/10), sharp rectangular thumb, active track colored primary (#06B6D4).",
-    "tabs": "Full width, equal grid, text-zinc-400. Active state: text-cyan-400 with a bottom 2px border of cyan-400.",
-    "cards": "Cardless design. Use simple divs with border-b border-white/10 and p-4 for list items.",
-    "badges": "Small monospace tags for audio formats (e.g., [FLAC], [DSD], [64-BIT]) with border-cyan-500/30 text-cyan-400 bg-cyan-500/10."
+    "global": {
+      "background_animation": "Use absolute positioned framer-motion divs with massive blur (blur-[120px]) and slow floating animations (translate, rotate) to create dynamic lighting behind the UI. The colors should subtly shift based on the active tab."
+    },
+    "library_tab": {
+      "layout": "Grid of glass cards for Songs, Artists, Genres, Playlists. Large blurred search bar at the top.",
+      "search_input": "w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-[#FF6B6B]",
+      "accent_color": "#FF6B6B"
+    },
+    "now_playing_tab": {
+      "layout": "Hero layout. Massive square album art (max-h-[50vh]) floating with a glowing drop-shadow matching the dominant album color. Controls below in a sleek glass container.",
+      "playback_controls": "Play button: w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border border-[#2D5BFF]/30 flex items-center justify-center. Skip buttons: w-12 h-12 text-white/60 hover:text-white.",
+      "progress_bar": "h-1.5 w-full bg-white/10 rounded-full overflow-hidden. Inner fill: bg-[#2D5BFF]. Thumb: hidden until interaction.",
+      "accent_color": "#2D5BFF"
+    },
+    "equalizer_tab": {
+      "layout": "Dashboard-style layout. Top: Segmented control (Presets, 10-Band, 31-Band). Middle: Interactive EQ curve graph (SVG/Canvas). Bottom: Row of vertical faders (sliders) taking up the lower half.",
+      "fader": "Vertical slider. Track: w-1.5 bg-white/10 rounded-full. Fill: bg-[#CDFF00]. Thumb: w-4 h-4 rounded-full bg-white border-2 border-[#CDFF00] shadow-[0_0_10px_rgba(205,255,0,0.5)].",
+      "labels": "Frequency labels (e.g., '60', '1k', '16k') below each fader using 'mono_data' typography.",
+      "accent_color": "#CDFF00"
+    },
+    "spectrum_tab": {
+      "layout": "Immersive visualization area. Top half: Real-time audio spectrum visualization (canvas-based bars). Bottom half: Audio Processing Controls (Pre-amp, Tone, Stereo Width, Crossfeed).",
+      "knobs": "Rotary dials for processing controls. Round glass containers with an #FF8A00 arc indicating the current value.",
+      "visualizer": "Multiple vertical bars stretching vertically based on frequency amplitude. Colored with a vertical gradient from #FF8A00 to transparent.",
+      "accent_color": "#FF8A00"
+    },
+    "settings_tab": {
+      "layout": "List layout. Groups of settings in glass cards.",
+      "list_item": "flex justify-between items-center py-4 border-b border-white/5 last:border-0",
+      "toggle": "Custom Switch. Track: bg-white/10, checked: bg-[#E0F2FE]. Thumb: bg-white. (Requires Shadcn Switch customized)",
+      "accent_color": "#E0F2FE"
+    }
   },
-  "icons": {
-    "library": "@phosphor-icons/react",
-    "style": "Duotone or bold weights for technical controls. Install command: yarn add @phosphor-icons/react"
-  },
-  "media_urls": {
+  "icons_and_assets": {
+    "library": "@phosphor-icons/react (Weight: 'light' or 'thin' for all)",
     "album_covers": [
       {
-        "url": "https://images.unsplash.com/photo-1754254235621-59958525d4ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGFsYnVtJTIwY292ZXIlMjBhcnQlMjBkYXJrfGVufDB8fHx8MTc3NTA5NjE3M3ww&ixlib=rb-4.1.0&q=85",
-        "description": "Abstract swirling pattern blue green",
-        "category": "album_art"
+        "url": "https://images.pexels.com/photos/15578335/pexels-photo-15578335.png",
+        "category": "now_playing_album",
+        "description": "Abstract artwork with dynamic warm colors"
       },
       {
-        "url": "https://images.unsplash.com/photo-1694454081401-cef6ac439445?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGFsYnVtJTIwY292ZXIlMjBhcnQlMjBkYXJrfGVufDB8fHx8MTc3NTA5NjE3M3ww&ixlib=rb-4.1.0&q=85",
-        "description": "Black background purple blue swirls",
-        "category": "album_art"
+        "url": "https://images.pexels.com/photos/13069544/pexels-photo-13069544.png",
+        "category": "library_playlist_cover",
+        "description": "Dynamic abstract artwork featuring vivid red and blue swirls"
       }
     ],
-    "backgrounds_and_decorations": [
+    "background_texture": [
       {
-        "url": "https://images.pexels.com/photos/27141311/pexels-photo-27141311.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-        "description": "Digital sound interface",
-        "category": "spectrum_bg"
-      },
-      {
-        "url": "https://images.pexels.com/photos/17400199/pexels-photo-17400199.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-        "description": "Audio graphic equalizer",
-        "category": "eq_bg"
-      }
-    ],
-    "empty_states": [
-      {
-        "url": "https://images.unsplash.com/photo-1761005653657-0885604ddbcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwyfHxhdWRpb3BoaWxlJTIwaGVhZHBob25lcyUyMGRhcmslMjBzdHVkaW98ZW58MHx8fHwxNzc1MDk2MTczfDA&ixlib=rb-4.1.0&q=85",
-        "description": "Sony headphones illuminated",
-        "category": "empty_library"
+        "url": "https://images.pexels.com/photos/28583190/pexels-photo-28583190.jpeg",
+        "category": "app_base_background",
+        "description": "Creative abstract art featuring vibrant fluid lines on dark bg (Use as a fixed background with very low opacity ~10% behind the moving gradients)"
       }
     ]
   },
-  "specific_features": {
-    "Now_Playing_Screen": {
-      "layout": "Hero section with large square album art (max 50vh height).",
-      "audiophile_details": "Below album art: Technical mono-spaced readout of bit-rate (e.g. 'FLAC 192kHz / 24bit', 'Bit-Perfect').",
-      "visuals": "Main playback controls centered. Audio spectrum visualizer (Recharts bar/area or animated SVG) behind or directly below controls, mapped in primary color."
-    },
-    "Parametric_Equalizer": {
-      "layout": "Multiple vertical sliders for bands (e.g. 31Hz, 62Hz, 125Hz... up to 16kHz) in a horizontally scrollable container (overflow-x-auto).",
-      "data_display": "Each slider must have a small monospace label for Hz at the bottom, and a dynamic dB value at the top.",
-      "controls": "Include explicit toggles/buttons for 'Pre-amp', 'Tone', and 'Stereo Delivery' at the top of the EQ view."
-    },
-    "Library_Panels": {
-      "layout": "Tabs for Playlists, Artists, Songs, Genres. Use strict list views (flex-row, items-center).",
-      "items": "Small square thumbnails, bold title, muted subtitle, and file format indicator badge on the right side."
-    },
-    "Audio_Quality_Analyzer": {
-      "layout": "A dedicated modal or section showing a real-time Recharts-based spectrum area chart, mapping frequencies, to emulate the 'Neutron Player' complex visualizer."
-    }
+  "interactions": {
+    "hover_states": "All interactive elements must brighten on hover (text-white/60 -> text-white).",
+    "transitions": "Use 'transition-all duration-300 ease-out' universally.",
+    "tab_switching": "When switching tabs, the background ambient light blobs should crossfade to the new tab's accent color (e.g., from Blue to Green)."
   },
   "instructions_to_main_agent": [
-    "Use standard HTML/Tailwind and customized Shadcn components.",
-    "File extensions must be .js or .jsx (DO NOT use .tsx).",
-    "Ensure all numbers, times, frequencies, and bit-rates use the 'font-mono' class coupled with the imported IBM Plex Mono font.",
-    "Implement a fixed bottom navigation bar (sticky bottom-0) for switching between 'Library', 'Now Playing', 'EQ', and 'Settings'.",
-    "For the EQ sliders, stack them vertically but arrange the band groups horizontally using 'flex gap-4 overflow-x-auto p-4'.",
-    "Add 'data-testid' attributes to ALL interactive elements (buttons, tabs, sliders, list items).",
-    "Ensure hover states and active states are distinct, prioritizing high contrast (#06B6D4) over subtle greys.",
-    "Do not add any authentication or login screens. Local use only."
+    "Install `@phosphor-icons/react` for minimalist line-style icons (Weight='light').",
+    "Install `framer-motion` for page transitions, tab switching, and the floating background blobs.",
+    "This is an Expo React Native app conceptually, but implement it as a PWA / Mobile-Web UI using standard HTML/Tailwind.",
+    "For the 5 main tabs, build a state manager to handle activeTab, and use AnimatePresence to crossfade between the screen components.",
+    "Ensure the bottom navigation stays fixed (`z-50`), over the content, and has `backdrop-blur-3xl` so scrolling content is visible beneath it.",
+    "For the Equalizer: Use HTML `<input type='range'>` customized heavily with Tailwind, rotating it `-90deg` to make vertical faders if needed, or build a custom pointer-events tracker.",
+    "Use Shadcn UI for dropdowns or modals in Settings, but override their background to match the glassmorphism theme (`bg-black/60 backdrop-blur-xl border-white/10`).",
+    "Implement format badges (FLAC, 64-bit, DSD) as small monospace pills using the `mono_data` text specs.",
+    "Ensure text contrast meets APCA/WCAG standards against the dark glass by heavily utilizing `text-white` for primary data and `text-white/60` for secondary."
   ]
 }
