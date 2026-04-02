@@ -1,0 +1,110 @@
+{
+  "theme": "dark",
+  "archetype": "Archetype 2 (Performance Pro) / Archetype 4 (Swiss & High-Contrast) Hybrid - Technical Audiophile",
+  "domain": "Audiophile Music Player",
+  "color_palette": {
+    "background": "#0A0A0A",
+    "surface": "#121212",
+    "surface_hover": "#1C1C1E",
+    "primary": "#06B6D4",
+    "primary_hover": "#0891B2",
+    "text_main": "#FFFFFF",
+    "text_muted": "#A1A1AA",
+    "border": "rgba(255, 255, 255, 0.12)",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "error": "#EF4444"
+  },
+  "typography": {
+    "heading_font": "Outfit, sans-serif",
+    "body_font": "IBM Plex Sans, sans-serif",
+    "data_font": "IBM Plex Mono, monospace",
+    "font_install_instructions": "Add Google Fonts imports for Outfit, IBM Plex Sans, and IBM Plex Mono to the global CSS.",
+    "hierarchy": {
+      "h1": "text-3xl font-bold tracking-tight text-white",
+      "h2": "text-2xl font-semibold tracking-tight text-white",
+      "body": "text-base font-normal text-zinc-300",
+      "data_labels": "text-xs font-medium tracking-[0.1em] text-zinc-400 uppercase font-mono",
+      "readouts": "text-sm font-bold text-cyan-400 font-mono"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Control Room Grid - high density, technical precision, visible 1px borders. No soft shadows.",
+    "container": "Mobile-first responsive layout (w-full max-w-md mx-auto h-[100dvh] overflow-hidden flex flex-col bg-[#0A0A0A] border-x border-white/10) to emulate a mobile app view.",
+    "borders": "1px solid border-white/10 for all panels, hard technical edges.",
+    "radii": "rounded-none or max rounded-sm (2px) for brutalist precision."
+  },
+  "components": {
+    "buttons": "Flat, 1px border, transparent background, text-white. Hover state: bg-white/5. Primary actions use text-cyan-400.",
+    "sliders": "For EQ: Vertical orientation. Thin 2px track (bg-white/10), sharp rectangular thumb, active track colored primary (#06B6D4).",
+    "tabs": "Full width, equal grid, text-zinc-400. Active state: text-cyan-400 with a bottom 2px border of cyan-400.",
+    "cards": "Cardless design. Use simple divs with border-b border-white/10 and p-4 for list items.",
+    "badges": "Small monospace tags for audio formats (e.g., [FLAC], [DSD], [64-BIT]) with border-cyan-500/30 text-cyan-400 bg-cyan-500/10."
+  },
+  "icons": {
+    "library": "@phosphor-icons/react",
+    "style": "Duotone or bold weights for technical controls. Install command: yarn add @phosphor-icons/react"
+  },
+  "media_urls": {
+    "album_covers": [
+      {
+        "url": "https://images.unsplash.com/photo-1754254235621-59958525d4ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGFsYnVtJTIwY292ZXIlMjBhcnQlMjBkYXJrfGVufDB8fHx8MTc3NTA5NjE3M3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract swirling pattern blue green",
+        "category": "album_art"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1694454081401-cef6ac439445?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGFsYnVtJTIwY292ZXIlMjBhcnQlMjBkYXJrfGVufDB8fHx8MTc3NTA5NjE3M3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Black background purple blue swirls",
+        "category": "album_art"
+      }
+    ],
+    "backgrounds_and_decorations": [
+      {
+        "url": "https://images.pexels.com/photos/27141311/pexels-photo-27141311.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Digital sound interface",
+        "category": "spectrum_bg"
+      },
+      {
+        "url": "https://images.pexels.com/photos/17400199/pexels-photo-17400199.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Audio graphic equalizer",
+        "category": "eq_bg"
+      }
+    ],
+    "empty_states": [
+      {
+        "url": "https://images.unsplash.com/photo-1761005653657-0885604ddbcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwyfHxhdWRpb3BoaWxlJTIwaGVhZHBob25lcyUyMGRhcmslMjBzdHVkaW98ZW58MHx8fHwxNzc1MDk2MTczfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Sony headphones illuminated",
+        "category": "empty_library"
+      }
+    ]
+  },
+  "specific_features": {
+    "Now_Playing_Screen": {
+      "layout": "Hero section with large square album art (max 50vh height).",
+      "audiophile_details": "Below album art: Technical mono-spaced readout of bit-rate (e.g. 'FLAC 192kHz / 24bit', 'Bit-Perfect').",
+      "visuals": "Main playback controls centered. Audio spectrum visualizer (Recharts bar/area or animated SVG) behind or directly below controls, mapped in primary color."
+    },
+    "Parametric_Equalizer": {
+      "layout": "Multiple vertical sliders for bands (e.g. 31Hz, 62Hz, 125Hz... up to 16kHz) in a horizontally scrollable container (overflow-x-auto).",
+      "data_display": "Each slider must have a small monospace label for Hz at the bottom, and a dynamic dB value at the top.",
+      "controls": "Include explicit toggles/buttons for 'Pre-amp', 'Tone', and 'Stereo Delivery' at the top of the EQ view."
+    },
+    "Library_Panels": {
+      "layout": "Tabs for Playlists, Artists, Songs, Genres. Use strict list views (flex-row, items-center).",
+      "items": "Small square thumbnails, bold title, muted subtitle, and file format indicator badge on the right side."
+    },
+    "Audio_Quality_Analyzer": {
+      "layout": "A dedicated modal or section showing a real-time Recharts-based spectrum area chart, mapping frequencies, to emulate the 'Neutron Player' complex visualizer."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Use standard HTML/Tailwind and customized Shadcn components.",
+    "File extensions must be .js or .jsx (DO NOT use .tsx).",
+    "Ensure all numbers, times, frequencies, and bit-rates use the 'font-mono' class coupled with the imported IBM Plex Mono font.",
+    "Implement a fixed bottom navigation bar (sticky bottom-0) for switching between 'Library', 'Now Playing', 'EQ', and 'Settings'.",
+    "For the EQ sliders, stack them vertically but arrange the band groups horizontally using 'flex gap-4 overflow-x-auto p-4'.",
+    "Add 'data-testid' attributes to ALL interactive elements (buttons, tabs, sliders, list items).",
+    "Ensure hover states and active states are distinct, prioritizing high contrast (#06B6D4) over subtle greys.",
+    "Do not add any authentication or login screens. Local use only."
+  ]
+}
